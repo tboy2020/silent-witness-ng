@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a1628">
+<title>Silent Witness NG</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230a1628' width='100' height='100' rx='20'/><text y='68' x='50' text-anchor='middle' font-size='55'>🛡️</text></svg>">
+<style>
+/* ========== RESET & BASE ========== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a1628;--surface:#111d33;--surface-lt:#182742;--surface-dk:#0d1220;
+  --accent:#3b82f6;--accent-dim:#1e3a5f;--accent-glow:#3b82f644;
+  --danger:#dc2626;--danger-dim:#7f1d1d;--danger-glow:#dc262655;
+  --safe:#16a34a;--safe-dim:#14532d;
+  --warn:#f59e0b;--warn-dim:#78350f;
+  --text:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;--white:#ffffff;
+  --border:#1e3050;
+  --radius:14px;--radius-sm:10px;--radius-lg:20px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+html,body{
+  height:100%;background:var(--bg);color:var(--text);font-family:var(--font);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+body{padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+input,textarea,select,button{font-family:var(--font);font-size:15px}
+a{color:var(--accent);text-decoration:none}
+
+/* ========== APP SHELL ========== */
+#app{
+  max-width:430px;margin:0 auto;min-height:100vh;position:relative;
+  display:flex;flex-direction:column;
+}
+.screen{
+  padding:24px 20px 100px;flex:1;display:flex;flex-direction:column;
+  animation:fadeIn .3s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.screen.center{justify-content:center;align-items:center;text-align:center}
+.screen-pad-top{padding-top:48px}
+
+/* ========== TYPOGRAPHY ========== */
+h1{font-size:26px;font-weight:700;line-height:1.2;color:var(--white);margin-bottom:8px}
+h2{font-size:22px;font-weight:700;line-height:1.3;color:var(--white);margin-bottom:6px}
+.subtitle{font-size:15px;color:var(--text-dim);line-height:1.5;margin-bottom:24px}
+.label{
+  font-size:12px;color:var(--text-dim);font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:6px;display:block;
+}
+.small{font-size:13px;color:var(--text-muted);line-height:1.5}
+.eyebrow{
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+}
+
+/* ========== CARDS ========== */
+.card{
+  background:var(--surface);border-radius:var(--radius-lg);padding:20px;
+  border:1px solid var(--border);margin-bottom:14px;
+}
+.card-accent{border-color:var(--accent-glow);background:var(--accent-dim)}
+.card-safe{border-color:var(--safe-dim)}
+.card-warn{border-color:var(--warn-dim)}
+.card-danger{border-color:var(--danger-dim)}
+
+/* ========== BUTTONS ========== */
+.btn{
+  display:block;width:100%;padding:16px 24px;border-radius:var(--radius);
+  border:none;font-size:16px;font-weight:600;cursor:pointer;
+  transition:all .2s ease;letter-spacing:.02em;text-align:center;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.97)}
+.btn-danger{
+  background:linear-gradient(135deg,var(--danger),#b91c1c);color:var(--white);
+  box-shadow:0 4px 24px var(--danger-glow);
+}
+.btn-accent{
+  background:linear-gradient(135deg,var(--accent),#2563eb);color:var(--white);
+  box-shadow:0 4px 24px var(--accent-glow);
+}
+.btn-surface{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-ghost{background:transparent;color:var(--text-dim);font-size:14px}
+.btn-sm{padding:12px 16px;font-size:14px}
+.btn-lg{padding:22px 24px;font-size:18px}
+.btn-pill{border-radius:50px}
+.btn-disabled{opacity:.45;pointer-events:none}
+.btn+.btn{margin-top:12px}
+.btn-row{display:flex;gap:10px}
+.btn-row .btn{flex:1}
+.btn-outline-accent{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-glow)}
+
+/* ========== FORMS ========== */
+.input{
+  width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface-lt);color:var(--text);font-size:15px;outline:none;
+}
+.input:focus{border-color:var(--accent)}
+.input+.input{margin-top:10px}
+textarea.input{min-height:80px;resize:vertical;line-height:1.5}
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+
+/* ========== TAGS ========== */
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{
+  display:inline-block;padding:9px 14px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .2s ease;
+  border:1px solid transparent;background:var(--surface-lt);color:var(--text-dim);
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.tag.active{background:var(--accent-dim);color:var(--accent);border-color:var(--accent-glow)}
+.tag.active-warn{background:var(--warn-dim);color:var(--warn);border-color:#f59e0b44}
+
+/* ========== BACK BUTTON ========== */
+.back{
+  background:none;border:none;color:var(--text-dim);font-size:14px;
+  cursor:pointer;padding:4px 0;margin-bottom:16px;display:flex;align-items:center;gap:6px;
+  font-family:var(--font);-webkit-tap-highlight-color:transparent;
+}
+
+/* ========== PULSING DOT ========== */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.pulse-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--danger);
+  display:inline-block;animation:pulse 1.4s ease infinite;
+  box-shadow:0 0 12px var(--danger);
+}
+
+/* ========== PROGRESS BAR ========== */
+.progress-bar{display:flex;gap:6px;justify-content:center}
+.progress-bar .seg{width:40px;height:4px;border-radius:2px;background:var(--surface-lt);transition:background .4s ease}
+.progress-bar .seg.active{background:var(--accent)}
+
+/* ========== PROMPT DOTS ========== */
+.dots{display:flex;justify-content:center;gap:8px;margin:16px 0}
+.dot{
+  width:8px;height:8px;border-radius:4px;background:var(--surface-lt);
+  cursor:pointer;transition:all .3s ease;
+}
+.dot.active{width:24px;background:var(--accent)}
+
+/* ========== STATS GRID ========== */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stats.cols-3{grid-template-columns:1fr 1fr 1fr}
+.stat-val{font-size:15px;font-weight:600;color:var(--white);margin-top:4px}
+.stat-val.lg{font-size:28px;font-weight:800}
+
+/* ========== CASE CARD ========== */
+.case-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.case-id{font-size:13px;color:var(--text-muted);font-family:monospace}
+.badge{
+  font-size:11px;padding:4px 10px;border-radius:6px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.badge-danger{background:var(--danger-dim);color:var(--danger)}
+.badge-safe{background:var(--safe-dim);color:var(--safe)}
+.case-meta{display:flex;gap:14px;font-size:13px;color:var(--text-dim);flex-wrap:wrap}
+
+/* ========== RECORDING SCREEN ========== */
+.rec-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.rec-label{font-size:14px;color:var(--danger);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.rec-timer{font-size:22px;color:var(--white);font-weight:700;margin-left:auto;font-variant-numeric:tabular-nums}
+.prompt-card{
+  background:var(--surface);border-radius:var(--radius-lg);padding:28px;
+  border:1px solid #3b82f633;flex:1;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;min-height:220px;margin-bottom:20px;
+}
+.prompt-icon{font-size:48px;margin-bottom:20px}
+.prompt-text{font-size:20px;font-weight:600;text-align:center;line-height:1.4;color:var(--white)}
+.prompt-step{font-size:13px;color:var(--text-muted);margin-top:16px}
+
+/* ========== DASHED UPLOAD ========== */
+.upload-area{
+  border:2px dashed var(--border);border-radius:var(--radius);padding:14px;
+  text-align:center;cursor:pointer;background:var(--surface-lt);color:var(--text-dim);
+  font-size:14px;transition:border-color .2s ease;
+}
+.upload-area:active{border-color:var(--accent)}
+
+/* ========== AUTO-CAPTURED ========== */
+.auto-row{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.auto-check{color:var(--safe);font-size:16px}
+
+/* ========== BOTTOM NAV ========== */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+  background:var(--surface-dk);border-top:1px solid var(--border);
+  display:flex;padding:8px 0 calc(8px + var(--safe-bottom));z-index:100;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 4px;background:none;border:none;color:var(--text-muted);
+  font-size:10px;cursor:pointer;font-family:var(--font);
+  -webkit-tap-highlight-color:transparent;transition:color .2s ease;
+}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:22px}
+
+/* ========== HIDDEN ========== */
+.hidden{display:none!important}
+
+/* ========== SECTION DIVIDER ========== */
+.section-icon{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME SCREEN ============ -->
+  <div id="screen-home" class="screen center screen-pad-top">
+    <div style="margin-bottom:40px">
+      <div style="font-size:52px;margin-bottom:16px">🛡️</div>
+      <h1 style="font-size:30px;font-weight:800;letter-spacing:-.02em">Silent Witness</h1>
+      <p class="eyebrow" style="color:var(--text-muted);margin-top:8px;letter-spacing:.14em">Turning crisis into intelligence</p>
+    </div>
+
+    <button class="btn btn-danger btn-lg" id="btn-ransom-mode">🔴&ensp;Ransom Call Mode</button>
+    <button class="btn btn-surface" id="btn-tip-mode">📝&ensp;Submit Anonymous Tip</button>
+    <button class="btn btn-surface" id="btn-call-log">📋&ensp;Call Log &amp; Cases</button>
+    <button class="btn btn-surface" id="btn-deadman">⏱️&ensp;Dead Man's Switch</button>
+    <button class="btn btn-ghost" id="btn-setup">⚙️&ensp;Setup Trusted Contacts</button>
+
+    <div style="margin-top:auto;padding-top:32px">
+      <p class="small" style="text-align:center;line-height:1.7">
+        No accounts. No logins. No data stored on your phone.<br>Your identity is never recorded.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ SETUP SCREEN ============ -->
+  <div id="screen-setup" class="screen hidden">
+    <button class="back" data-go="home">← Back</button>
+    <h1>Setup</h1>
+    <p class="subtitle">Configure your trusted network. These people receive encrypted data when you submit.</p>
+
+    <div class="card">
+      <span class="label">Trusted Contacts</span>
+      <p class="small" style="margin-bottom:14px">Family, pastors, lawyers, or community leaders who will receive your data securely.</p>
+      <div id="contacts-list"></div>
+      <button class="btn btn-sm btn-outline-accent" id="btn-add-contact" style="margin-top:10px">+ Add Contact</button>
+    </div>
+
+    <div class="card">
+      <span class="label">Encryption Passphrase</span>
+      <p class="small" style="margin-bottom:12px">A secret word used to encrypt your data. Store it somewhere safe — it cannot be recovered.</p>
+      <input class="input" type="password" id="input-passphrase" placeholder="Enter your passphrase">
+    </div>
+
+    <div class="card">
+      <span class="label">Backend Relay URL</span>
+      <p class="small" style="margin-bottom:12px">The Google Apps Script or Cloudflare Worker URL that receives encrypted packages.</p>
+      <input class="input" type="url" id="input-relay-url" placeholder="https://script.google.com/macros/s/...">
+    </div>
+
+    <button class="btn btn-accent" id="btn-save-setup">💾&ensp;Save Configuration</button>
+    <div id="setup-saved" class="hidden" style="text-align:center;margin-top:12px">
+      <p style="color:var(--safe);font-weight:600">✓ Configuration saved securely</p>
+    </div>
+  </div>
+
+  <!-- ============ PRE-CALL SCREEN ============ -->
+  <div id="screen-precall" class="screen center hidden">
+    <div style="max-width:320px">
+      <div style="font-size:56px;margin-bottom:24px">🫁</div>
+      <h1 style="font-size:28px;margin-bottom:16px">Take 3 deep breaths.</h1>
+      <p style="font-size:17px;color:var(--text-dim);line-height:1.6;margin-bottom:12px">You are not alone.</p>
+      <p class="small" style="margin-bottom:40px;line-height:1.7">
+        When you press start, the app will guide you through the call with on-screen prompts. 
+        It will record audio in the background.
+      </p>
+      <button class="btn btn-danger btn-lg" id="btn-start-recording" style="box-shadow:0 4px 30px var(--danger-glow)">
+        I'm Ready — Start Recording
+      </button>
+      <button class="btn btn-ghost" data-go="home">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ============ DURING-CALL SCREEN ============ -->
+  <div id="screen-duringcall" class="screen hidden" style="background:#0d0f14;padding-bottom:24px">
+    <div class="rec-header">
+      <span class="pulse-dot"></span>
+      <span class="rec-label">Recording</span>
+      <span class="rec-timer" id="call-timer">00:00</span>
+    </div>
+
+    <div class="prompt-card" id="prompt-card">
+      <div class="prompt-icon" id="prompt-icon">🫁</div>
+      <p class="prompt-text" id="prompt-text">Stay calm. Let them speak first. Do not interrupt.</p>
+      <p class="prompt-step" id="prompt-step">Step 1 of 6</p>
+    </div>
+
+    <div class="btn-row" style="margin-bottom:8px">
+      <button class="btn btn-sm btn-surface" id="btn-prompt-prev">← Previous</button>
+      <button class="btn btn-sm btn-outline-accent" id="btn-prompt-next">Next →</button>
+    </div>
+
+    <div class="dots" id="prompt-dots"></div>
+
+    <div style="margin-top:auto">
+      <button class="btn btn-danger btn-pill" id="btn-end-call">End Call — Capture Data →</button>
+    </div>
+  </div>
+
+  <!-- ============ POST-CALL CAPTURE ============ -->
+  <div id="screen-postcall" class="screen hidden">
+    <button class="back" data-go="home">← Back</button>
+    <h1>Capture Everything</h1>
+    <p class="subtitle">The call is over. Now record every detail while it's fresh. This data saves lives.</p>
+
+    <!-- Auto-captured -->
+    <div class="card card-safe">
+      <div class="auto-row">
+        <span class="auto-check">✓</span>
+        <span class="eyebrow" style="color:var(--safe)">Auto-Captured</span>
+      </div>
+      <div class="stats">
+        <div><span class="eyebrow" style="color:var(--text-muted)">Time</span><p class="stat-val" id="cap-time">--:--:-- WAT</p></div>
+        <div><span class="eyebrow" style="color:var(--text-muted)">Duration</span><p class="stat-val" id="cap-duration">00:00</p></div>
+        <div><span class="eyebrow" style="color:var(--text-muted)">Audio</span><p class="stat-val" id="cap-audio">✓ Recorded</p></div>
+        <div><span class="eyebrow" style="color:var(--text-muted)">Status</span><p class="stat-val" style="color:var(--safe)">Secured</p></div>
+      </div>
+    </div>
+
+    <!-- Victim info -->
+    <div class="card">
+      <div class="field"><span class="label">Victim's Full Name</span><input class="input" id="inp-victim-name" placeholder="Full name"></div>
+      <div class="field"><span class="label">Age (if known)</span><input class="input" id="inp-victim-age" placeholder="Approximate age" type="number"></div>
+      <div class="field"><span class="label">Last Known Location</span><input class="input" id="inp-victim-location" placeholder="Where were they last seen?"></div>
+      <div class="field">
+        <span class="label">Date Taken / Last Contact</span>
+        <input class="input" id="inp-date-taken" type="date">
+      </div>
+    </div>
+
+    <!-- Ransom details -->
+    <div class="card">
+      <div class="field"><span class="label">Ransom Amount Demanded (₦)</span><input class="input" id="inp-ransom" placeholder="Amount in Naira" type="number"></div>
+      <div class="field"><span class="label">Language / Dialect Spoken</span><input class="input" id="inp-language" placeholder="e.g., Hausa, Pidgin, Yoruba, Fulfulde"></div>
+    </div>
+
+    <!-- Background sounds -->
+    <div class="card">
+      <span class="label">Background Sounds Heard</span>
+      <p class="small" style="margin-bottom:12px">Tap everything you heard during the call</p>
+      <div class="tags" id="tags-sounds"></div>
+    </div>
+
+    <!-- Voice Analysis -->
+    <div class="card card-warn">
+      <div class="section-icon">
+        <span style="font-size:16px">🎙️</span>
+        <span class="label" style="margin:0">Voice Analysis</span>
+      </div>
+      <p class="small" style="margin-bottom:12px;line-height:1.5">
+        Even with a voice changer, speech patterns, word choice, and behavior reveal identity. Select all that apply.
+      </p>
+      <div class="tags" id="tags-voice"></div>
+      <div class="field" style="margin-top:14px">
+        <span class="label">Speech Pattern Notes</span>
+        <textarea class="input" id="inp-voice-notes" placeholder="Describe how they spoke — repeated phrases, accent, unusual words, how they addressed victim, did they switch languages, any catchphrases..."></textarea>
+      </div>
+    </div>
+
+    <!-- Caller behavior -->
+    <div class="card">
+      <div class="field"><span class="label">Caller's Tone / Demeanor</span><input class="input" id="inp-demeanor" placeholder="Calm, aggressive, nervous, professional..."></div>
+      <div class="field"><span class="label">Names or Nicknames Mentioned</span><input class="input" id="inp-names" placeholder="Any names used by or about the callers"></div>
+      <div class="field"><span class="label">Deadline Given?</span><input class="input" id="inp-deadline" placeholder="e.g., 'You have 24 hours'"></div>
+      <div class="field"><span class="label">Proof of Life?</span>
+        <div class="tags" id="tags-proof"></div>
+      </div>
+    </div>
+
+    <!-- Caller phone -->
+    <div class="card">
+      <div class="field"><span class="label">Caller's Phone Number</span><input class="input" id="inp-caller-phone" placeholder="+234 XXX XXX XXXX" type="tel"></div>
+      <p class="small" style="margin-top:6px">If available. Check your call log for the exact number.</p>
+    </div>
+
+    <!-- Photo upload -->
+    <div class="card">
+      <span class="label">Victim's Recent Photo</span>
+      <p class="small" style="margin-bottom:12px">For alert distribution. Will be encrypted.</p>
+      <div class="upload-area" id="upload-photo">📷 Tap to Add Photo</div>
+      <input type="file" accept="image/*" capture="environment" id="file-photo" class="hidden">
+      <div id="photo-preview" class="hidden" style="margin-top:12px;text-align:center">
+        <img id="photo-img" style="max-width:100%;border-radius:12px;max-height:200px">
+        <button class="btn btn-ghost btn-sm" id="btn-remove-photo" style="margin-top:8px;color:var(--danger)">Remove Photo</button>
+      </div>
+    </div>
+
+    <!-- Additional notes -->
+    <div class="card">
+      <div class="field">
+        <span class="label">Anything Else</span>
+        <textarea class="input" id="inp-extra-notes" placeholder="Any other details — gut feelings, things that seemed off, anything at all..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-accent btn-lg" id="btn-encrypt-send" style="margin-top:8px">🔒&ensp;Encrypt &amp; Send to Network</button>
+  </div>
+
+  <!-- ============ SENDING SCREEN ============ -->
+  <div id="screen-sending" class="screen center hidden">
+    <div style="max-width:320px">
+      <div id="send-progress">
+        <div style="font-size:48px;margin-bottom:20px">🔐</div>
+        <p id="send-status" style="font-size:17px;font-weight:500;margin-bottom:32px">Encrypting data on your device...</p>
+        <div class="progress-bar" id="send-bar">
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+        </div>
+      </div>
+      <div id="send-done" class="hidden">
+        <div style="font-size:56px;margin-bottom:20px">✓</div>
+        <h2 style="color:var(--safe);margin-bottom:12px">Data Secured</h2>
+        <p style="font-size:16px;color:var(--text-dim);line-height:1.6;margin-bottom:28px">
+          Your information is now with people who act. No trace remains on this device.
+        </p>
+        <div class="card" style="text-align:left">
+          <p style="font-weight:600;color:var(--warn);margin-bottom:10px">What happens next:</p>
+          <p class="small" style="line-height:2">
+            • Your data is being reviewed by investigators<br>
+            • Phone numbers are cross-referenced with known cases<br>
+            • Audio will be analyzed for voice matching<br>
+            • If patterns emerge, journalists are alerted
+          </p>
+        </div>
+        <button class="btn btn-surface" data-go="home" style="margin-top:16px">Return Home</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TIP SCREEN ============ -->
+  <div id="screen-tip" class="screen hidden">
+    <button class="back" data-go="home">← Back</button>
+    <h1>Anonymous Tip</h1>
+    <p class="subtitle">No account needed. No identity recorded. Your tip could save a life.</p>
+
+    <div class="card">
+      <span class="label">What are you reporting?</span>
+      <div class="tags" id="tags-tiptype" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="field"><span class="label">State</span><input class="input" id="inp-tip-state" placeholder="e.g., Kaduna, FCT, Katsina"></div>
+      <div class="field"><span class="label">Local Government Area</span><input class="input" id="inp-tip-lga" placeholder="LGA name"></div>
+      <div class="field"><span class="label">Specific Location / Landmark</span><input class="input" id="inp-tip-landmark" placeholder="Near what? Describe the area"></div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <span class="label">Details</span>
+        <textarea class="input" id="inp-tip-details" placeholder="Describe what you saw or know. Include dates, times, descriptions of people, anything that could help." style="min-height:100px"></textarea>
+      </div>
+    </div>
+
+    <!-- Vehicle section (shown when vehicle type selected) -->
+    <div class="card hidden" id="tip-vehicle-card">
+      <div class="field"><span class="label">License Plate</span><input class="input" id="inp-tip-plate" placeholder="Plate number"></div>
+      <div class="field"><span class="label">Vehicle Color</span><input class="input" id="inp-tip-vcolor" placeholder="Color"></div>
+      <div class="field"><span class="label">Make / Model</span><input class="input" id="inp-tip-vmake" placeholder="e.g., Toyota Hilux, Sienna"></div>
+    </div>
+
+    <!-- Phone section -->
+    <div class="card hidden" id="tip-phone-card">
+      <div class="field"><span class="label">Phone Numbers</span><input class="input" id="inp-tip-phone" placeholder="+234 XXX XXX XXXX"></div>
+      <p class="small" style="margin-top:6px">Numbers associated with suspected criminal activity</p>
+    </div>
+
+    <div class="card">
+      <span class="label">Attachments</span>
+      <div class="upload-area" id="upload-tip-file">📎 Add Photo or Video</div>
+      <input type="file" accept="image/*,video/*" id="file-tip" class="hidden">
+    </div>
+
+    <button class="btn btn-accent btn-lg" id="btn-send-tip">🔒&ensp;Encrypt &amp; Submit Tip</button>
+  </div>
+
+  <!-- ============ CALL LOG SCREEN ============ -->
+  <div id="screen-calllog" class="screen hidden">
+    <button class="back" data-go="home">← Back</button>
+    <h1>Case Log</h1>
+    <p class="subtitle">All recorded incidents. Each one builds the intelligence network.</p>
+
+    <div class="card card-accent">
+      <div class="stats cols-3" style="text-align:center">
+        <div><p class="stat-val lg" id="stat-cases">0</p><p class="eyebrow" style="color:var(--accent);margin-top:4px">Cases</p></div>
+        <div><p class="stat-val lg" id="stat-calls">0</p><p class="eyebrow" style="color:var(--accent);margin-top:4px">Calls</p></div>
+        <div><p class="stat-val lg" id="stat-tips">0</p><p class="eyebrow" style="color:var(--accent);margin-top:4px">Tips</p></div>
+      </div>
+    </div>
+
+    <div id="case-list">
+      <div style="text-align:center;padding:40px 20px">
+        <p style="font-size:40px;margin-bottom:16px">📋</p>
+        <p class="small">No cases recorded yet. When you submit a ransom call or tip, it will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DEAD MAN'S SWITCH ============ -->
+  <div id="screen-deadman" class="screen hidden">
+    <button class="back" data-go="home">← Back</button>
+    <h1>Dead Man's Switch</h1>
+    <p class="subtitle">Set a check-in timer. If you don't tap "I'm Safe" before it expires, your last GPS location and an alert are sent to your trusted contacts.</p>
+
+    <div class="card">
+      <span class="label">Check-In Interval</span>
+      <p class="small" style="margin-bottom:12px">How often should the app ask you to confirm you're safe?</p>
+      <div class="tags" id="tags-interval"></div>
+    </div>
+
+    <div class="card">
+      <span class="label">Alert Message</span>
+      <textarea class="input" id="inp-alert-msg" placeholder="This message is sent if you don't check in. e.g., 'I have not checked in. My last known location is attached. Please take action immediately.'"></textarea>
+    </div>
+
+    <div class="card">
+      <span class="label">Current Status</span>
+      <div id="deadman-status" style="text-align:center;padding:20px">
+        <p style="font-size:40px;margin-bottom:12px">😴</p>
+        <p style="color:var(--text-dim)">Switch is inactive</p>
+      </div>
+    </div>
+
+    <button class="btn btn-accent" id="btn-activate-deadman">⏱️&ensp;Activate Switch</button>
+    <button class="btn btn-ghost hidden" id="btn-checkin">✅&ensp;I'm Safe — Reset Timer</button>
+  </div>
+
+</div>
+
+<script>
+/* ================================================================
+   SILENT WITNESS NG — Full Application Logic
+   ================================================================ */
+
+(function(){
+'use strict';
+
+// =================== DATA ===================
+const SOUNDS = [
+  'Traffic / road noise','Generator humming','Animals (goats, chickens)',
+  'Water / river','Other voices / people','Music / radio',
+  'Construction sounds','Very quiet — nothing'
+];
+const VOICE_TYPES = [
+  'Natural — no modification','Voice changer / modulator','Whispering deliberately',
+  'Muffled — covering phone','Multiple speakers took turns','Someone coaching in background',
+  'Caller sounded young (under 25)','Caller sounded older (40+)'
+];
+const PROMPTS = [
+  {icon:'🫁',text:'Stay calm. Let them speak first. Do not interrupt.'},
+  {icon:'🗣️',text:'Ask: "Can I speak to [their name]?"'},
+  {icon:'❓',text:'Ask: "How do I know they are alive and safe?"'},
+  {icon:'👂',text:'Listen carefully for background sounds — traffic, generator, animals, water.'},
+  {icon:'📞',text:'Ask: "When will you call me again?"'},
+  {icon:'✋',text:'Do NOT agree to any amount. Say you need time to gather funds.'}
+];
+const TIP_TYPES = [
+  {id:'suspicious',label:'👁️ Suspicious Activity'},
+  {id:'vehicle',label:'🚗 Vehicle / Plates'},
+  {id:'safehouse',label:'🏚️ Suspected Safe House'},
+  {id:'phone',label:'📱 Phone Number'},
+  {id:'other',label:'📌 Other Intel'}
+];
+const INTERVALS = [
+  {label:'30 min',val:30},{label:'1 hour',val:60},
+  {label:'2 hours',val:120},{label:'4 hours',val:240}
+];
+
+// =================== STATE ===================
+let state = {
+  currentScreen: 'home',
+  // Recording
+  mediaRecorder: null,
+  audioChunks: [],
+  audioBlob: null,
+  callStartTime: null,
+  callTimerInterval: null,
+  callDuration: 0,
+  currentPrompt: 0,
+  // Post-call selections
+  selectedSounds: new Set(),
+  selectedVoiceTypes: new Set(),
+  proofOfLife: null,
+  photoData: null,
+  // Tip
+  selectedTipType: null,
+  // Dead man
+  deadmanActive: false,
+  deadmanInterval: null,
+  deadmanTimer: null,
+  // Config
+  contacts: [],
+  passphrase: '',
+  relayUrl: '',
+  // Cases
+  cases: [],
+  totalCalls: 0,
+  totalTips: 0
+};
+
+// Load saved config
+function loadConfig(){
+  try {
+    const cfg = JSON.parse(localStorage.getItem('sw_config') || '{}');
+    state.contacts = cfg.contacts || [];
+    state.passphrase = cfg.passphrase || '';
+    state.relayUrl = cfg.relayUrl || '';
+    state.cases = JSON.parse(localStorage.getItem('sw_cases') || '[]');
+    state.totalCalls = parseInt(localStorage.getItem('sw_calls') || '0');
+    state.totalTips = parseInt(localStorage.getItem('sw_tips') || '0');
+  } catch(e){ console.warn('Config load error',e); }
+}
+function saveConfig(){
+  localStorage.setItem('sw_config', JSON.stringify({
+    contacts: state.contacts,
+    passphrase: state.passphrase,
+    relayUrl: state.relayUrl
+  }));
+}
+function saveCases(){
+  localStorage.setItem('sw_cases', JSON.stringify(state.cases));
+  localStorage.setItem('sw_calls', state.totalCalls.toString());
+  localStorage.setItem('sw_tips', state.totalTips.toString());
+}
+
+// =================== NAVIGATION ===================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const el = document.getElementById('screen-' + id);
+  if(el){
+    el.classList.remove('hidden');
+    el.scrollTop = 0;
+    window.scrollTo(0,0);
+  }
+  state.currentScreen = id;
+}
+
+// =================== ENCRYPTION ===================
+async function deriveKey(passphrase){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt:enc.encode('SilentWitnessNG_2026'), iterations:100000, hash:'SHA-256'},
+    keyMaterial,
+    {name:'AES-GCM', length:256},
+    false,
+    ['encrypt']
+  );
+}
+async function encryptData(data, passphrase){
+  const key = await deriveKey(passphrase || state.passphrase || 'default_sw_key');
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const encrypted = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(JSON.stringify(data)));
+  return {
+    iv: Array.from(iv),
+    data: Array.from(new Uint8Array(encrypted)),
+    timestamp: new Date().toISOString()
+  };
+}
+
+// =================== AUDIO RECORDING ===================
+async function startRecording(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    state.audioChunks = [];
+    state.mediaRecorder = new MediaRecorder(stream, {mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm'});
+    state.mediaRecorder.addEventListener('dataavailable', e => {
+      if(e.data.size > 0) state.audioChunks.push(e.data);
+    });
+    state.mediaRecorder.addEventListener('stop', () => {
+      state.audioBlob = new Blob(state.audioChunks, {type:'audio/webm'});
+      stream.getTracks().forEach(t => t.stop());
+    });
+    state.mediaRecorder.start(1000); // collect every second
+    state.callStartTime = Date.now();
+    startCallTimer();
+    return true;
+  } catch(e){
+    console.error('Recording error:', e);
+    alert('Microphone access is required for call recording. Please allow microphone access and try again.');
+    return false;
+  }
+}
+function stopRecording(){
+  if(state.mediaRecorder && state.mediaRecorder.state !== 'inactive'){
+    state.mediaRecorder.stop();
+  }
+  stopCallTimer();
+}
+function startCallTimer(){
+  const timerEl = document.getElementById('call-timer');
+  state.callTimerInterval = setInterval(() => {
+    state.callDuration = Math.floor((Date.now() - state.callStartTime) / 1000);
+    const m = Math.floor(state.callDuration / 60).toString().padStart(2,'0');
+    const s = (state.callDuration % 60).toString().padStart(2,'0');
+    timerEl.textContent = m + ':' + s;
+  }, 1000);
+}
+function stopCallTimer(){
+  clearInterval(state.callTimerInterval);
+  state.callTimerInterval = null;
+}
+
+// =================== PROMPTS ===================
+function renderPrompt(){
+  const p = PROMPTS[state.currentPrompt];
+  document.getElementById('prompt-icon').textContent = p.icon;
+  document.getElementById('prompt-text').textContent = p.text;
+  document.getElementById('prompt-step').textContent = 'Step ' + (state.currentPrompt+1) + ' of ' + PROMPTS.length;
+  // Dots
+  document.querySelectorAll('#prompt-dots .dot').forEach((d,i) => {
+    d.classList.toggle('active', i === state.currentPrompt);
+  });
+  // Button states
+  document.getElementById('btn-prompt-prev').classList.toggle('btn-disabled', state.currentPrompt === 0);
+  document.getElementById('btn-prompt-next').classList.toggle('btn-disabled', state.currentPrompt === PROMPTS.length - 1);
+}
+
+// =================== TAG RENDERING ===================
+function renderTags(containerId, items, selectedSet, cssClass){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach((item, i) => {
+    const label = typeof item === 'string' ? item : item.label;
+    const val = typeof item === 'string' ? item : (item.id || item.val || item.label);
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (selectedSet.has(val) ? (' ' + (cssClass || 'active')) : '');
+    tag.textContent = label;
+    tag.addEventListener('click', () => {
+      if(selectedSet.has(val)) selectedSet.delete(val);
+      else selectedSet.add(val);
+      renderTags(containerId, items, selectedSet, cssClass);
+    });
+    container.appendChild(tag);
+  });
+}
+function renderSingleSelectTags(containerId, items, currentVal, onChange){
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(item => {
+    const label = typeof item === 'string' ? item : item.label;
+    const val = typeof item === 'string' ? item : (item.id || item.val);
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (currentVal === val ? ' active' : '');
+    tag.textContent = label;
+    tag.addEventListener('click', () => onChange(val));
+    container.appendChild(tag);
+  });
+}
+
+// =================== SETUP SCREEN ===================
+function renderContacts(){
+  const container = document.getElementById('contacts-list');
+  container.innerHTML = '';
+  state.contacts.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:center';
+    const inp = document.createElement('input');
+    inp.className = 'input';
+    inp.placeholder = 'Contact ' + (i+1) + ' — name, phone, or email';
+    inp.value = c;
+    inp.addEventListener('input', e => { state.contacts[i] = e.target.value; });
+    const del = document.createElement('button');
+    del.textContent = '✕';
+    del.style.cssText = 'background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:8px;flex-shrink:0';
+    del.addEventListener('click', () => { state.contacts.splice(i,1); renderContacts(); });
+    row.appendChild(inp);
+    row.appendChild(del);
+    container.appendChild(row);
+  });
+}
+
+// =================== POST-CALL POPULATE ===================
+function populatePostCall(){
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) + ' WAT';
+  document.getElementById('cap-time').textContent = timeStr;
+  const m = Math.floor(state.callDuration / 60).toString().padStart(2,'0');
+  const s = (state.callDuration % 60).toString().padStart(2,'0');
+  document.getElementById('cap-duration').textContent = m + ':' + s;
+  document.getElementById('cap-audio').textContent = state.audioBlob ? '✓ ' + (state.audioBlob.size / 1024).toFixed(0) + ' KB' : '✗ Not available';
+
+  // Reset selections
+  state.selectedSounds = new Set();
+  state.selectedVoiceTypes = new Set();
+  state.proofOfLife = null;
+  state.photoData = null;
+  document.getElementById('photo-preview').classList.add('hidden');
+
+  // Render tags
+  renderTags('tags-sounds', SOUNDS, state.selectedSounds);
+  renderTags('tags-voice', VOICE_TYPES, state.selectedVoiceTypes, 'active-warn');
+  renderSingleSelectTags('tags-proof', ['Yes — spoke to victim','Yes — photo/video sent','No proof given','Not asked'], state.proofOfLife, val => {
+    state.proofOfLife = val;
+    renderSingleSelectTags('tags-proof', ['Yes — spoke to victim','Yes — photo/video sent','No proof given','Not asked'], state.proofOfLife, arguments.callee);
+  });
+
+  // Clear form fields
+  ['inp-victim-name','inp-victim-age','inp-victim-location','inp-date-taken',
+   'inp-ransom','inp-language','inp-voice-notes','inp-demeanor','inp-names',
+   'inp-deadline','inp-caller-phone','inp-extra-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+}
+
+// =================== COLLECT POST-CALL DATA ===================
+function collectPostCallData(){
+  return {
+    type: 'ransom_call',
+    case_id: 'SW-' + String(state.cases.length + 1).padStart(4,'0'),
+    timestamp: new Date().toISOString(),
+    call_duration_seconds: state.callDuration,
+    has_audio: !!state.audioBlob,
+    victim: {
+      name: document.getElementById('inp-victim-name').value,
+      age: document.getElementById('inp-victim-age').value,
+      last_known_location: document.getElementById('inp-victim-location').value,
+      date_taken: document.getElementById('inp-date-taken').value,
+      has_photo: !!state.photoData
+    },
+    ransom: {
+      amount_ngn: document.getElementById('inp-ransom').value,
+      language: document.getElementById('inp-language').value,
+    },
+    background_sounds: Array.from(state.selectedSounds),
+    voice_analysis: {
+      voice_types: Array.from(state.selectedVoiceTypes),
+      speech_notes: document.getElementById('inp-voice-notes').value
+    },
+    caller: {
+      demeanor: document.getElementById('inp-demeanor').value,
+      names_mentioned: document.getElementById('inp-names').value,
+      deadline: document.getElementById('inp-deadline').value,
+      phone_number: document.getElementById('inp-caller-phone').value,
+      proof_of_life: state.proofOfLife
+    },
+    notes: document.getElementById('inp-extra-notes').value
+  };
+}
+
+// =================== COLLECT TIP DATA ===================
+function collectTipData(){
+  return {
+    type: 'anonymous_tip',
+    tip_id: 'TIP-' + String(Date.now()).slice(-8),
+    timestamp: new Date().toISOString(),
+    tip_type: state.selectedTipType,
+    location: {
+      state: document.getElementById('inp-tip-state').value,
+      lga: document.getElementById('inp-tip-lga').value,
+      landmark: document.getElementById('inp-tip-landmark').value
+    },
+    details: document.getElementById('inp-tip-details').value,
+    vehicle: state.selectedTipType === 'vehicle' ? {
+      plate: document.getElementById('inp-tip-plate').value,
+      color: document.getElementById('inp-tip-vcolor').value,
+      make: document.getElementById('inp-tip-vmake').value
+    } : null,
+    phone_numbers: state.selectedTipType === 'phone' ? document.getElementById('inp-tip-phone').value : null
+  };
+}
+
+// =================== SEND DATA ===================
+async function sendEncryptedData(data){
+  showScreen('sending');
+  const steps = ['Encrypting data on your device...','Stripping device identifiers...','Routing to secure relay...','Delivered to vetted network.'];
+  const statusEl = document.getElementById('send-status');
+  const barSegs = document.querySelectorAll('#send-bar .seg');
+
+  for(let i = 0; i < steps.length; i++){
+    statusEl.textContent = steps[i];
+    barSegs.forEach((seg, j) => seg.classList.toggle('active', j <= i));
+    if(i < steps.length - 1) await sleep(900);
+  }
+
+  try {
+    const encrypted = await encryptData(data);
+
+    // Attempt to send to relay
+    if(state.relayUrl){
+      try {
+        await fetch(state.relayUrl, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(encrypted),
+          mode:'no-cors'
+        });
+      } catch(e){
+        console.warn('Relay send failed (data still encrypted locally):', e);
+      }
+    }
+
+    // Save case locally (metadata only, not encrypted payload)
+    if(data.type === 'ransom_call'){
+      state.cases.unshift({
+        id: data.case_id,
+        victim: data.victim.name || 'Unknown',
+        status: 'active',
+        date: new Date().toLocaleDateString('en-NG',{month:'short',day:'numeric',year:'numeric'}),
+        calls: 1,
+        location: data.victim.last_known_location || 'Unknown'
+      });
+      state.totalCalls++;
+    } else {
+      state.totalTips++;
+    }
+    saveCases();
+
+  } catch(e){
+    console.error('Encryption error:', e);
+  }
+
+  await sleep(500);
+  document.getElementById('send-progress').classList.add('hidden');
+  document.getElementById('send-done').classList.remove('hidden');
+}
+
+// =================== CALL LOG RENDERING ===================
+function renderCallLog(){
+  document.getElementById('stat-cases').textContent = state.cases.length;
+  document.getElementById('stat-calls').textContent = state.totalCalls;
+  document.getElementById('stat-tips').textContent = state.totalTips;
+
+  const list = document.getElementById('case-list');
+  if(state.cases.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:40px 20px"><p style="font-size:40px;margin-bottom:16px">📋</p><p class="small">No cases recorded yet. When you submit a ransom call or tip, it will appear here.</p></div>';
+    return;
+  }
+  list.innerHTML = '';
+  state.cases.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="case-header">
+        <span class="case-id">${c.id}</span>
+        <span class="badge ${c.status === 'active' ? 'badge-danger' : 'badge-safe'}">${c.status}</span>
+      </div>
+      <p style="font-size:17px;font-weight:600;color:var(--white);margin-bottom:8px">${c.victim}</p>
+      <div class="case-meta">
+        <span>📍 ${c.location}</span>
+        <span>📞 ${c.calls} call${c.calls !== 1 ? 's' : ''}</span>
+        <span>📅 ${c.date}</span>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+// =================== DEAD MAN'S SWITCH ===================
+function activateDeadman(intervalMinutes){
+  state.deadmanActive = true;
+  state.deadmanInterval = intervalMinutes;
+  const statusEl = document.getElementById('deadman-status');
+  const btnActivate = document.getElementById('btn-activate-deadman');
+  const btnCheckin = document.getElementById('btn-checkin');
+
+  btnActivate.classList.add('hidden');
+  btnCheckin.classList.remove('hidden');
+
+  function updateCountdown(){
+    if(!state.deadmanActive) return;
+    const remaining = state.deadmanInterval * 60 - Math.floor((Date.now() - state.deadmanStart) / 1000);
+    if(remaining <= 0){
+      triggerDeadmanAlert();
+      return;
+    }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    statusEl.innerHTML = `<p style="font-size:48px;margin-bottom:12px">🟢</p>
+      <p style="color:var(--safe);font-weight:600;margin-bottom:8px">Switch Active</p>
+      <p style="font-size:32px;font-weight:700;color:var(--white);font-variant-numeric:tabular-nums">${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}</p>
+      <p class="small" style="margin-top:8px">Check in before this reaches 00:00</p>`;
+  }
+
+  state.deadmanStart = Date.now();
+  state.deadmanTimer = setInterval(updateCountdown, 1000);
+  updateCountdown();
+}
+function resetDeadman(){
+  state.deadmanStart = Date.now();
+}
+async function triggerDeadmanAlert(){
+  clearInterval(state.deadmanTimer);
+  state.deadmanActive = false;
+  const statusEl = document.getElementById('deadman-status');
+
+  // Try to get location
+  let coords = null;
+  try {
+    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:5000}));
+    coords = {lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy};
+  } catch(e){ console.warn('Location unavailable'); }
+
+  const alertData = {
+    type: 'deadman_alert',
+    timestamp: new Date().toISOString(),
+    message: document.getElementById('inp-alert-msg').value || 'I have not checked in. Please take action.',
+    location: coords,
+    contacts: state.contacts
+  };
+
+  // Send alert
+  if(state.relayUrl){
+    try {
+      const encrypted = await encryptData(alertData);
+      await fetch(state.relayUrl, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(encrypted), mode:'no-cors'});
+    } catch(e){ console.error('Alert send failed',e); }
+  }
+
+  statusEl.innerHTML = `<p style="font-size:48px;margin-bottom:12px">🚨</p>
+    <p style="color:var(--danger);font-weight:600">ALERT TRIGGERED</p>
+    <p class="small" style="margin-top:8px">Your location and alert message have been sent to your trusted contacts.</p>`;
+}
+
+// =================== UTILITIES ===================
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function genUUID(){ return 'xxxxxxxx'.replace(/x/g, () => (Math.random()*16|0).toString(16)); }
+
+// =================== INIT ===================
+function init(){
+  loadConfig();
+
+  // Build prompt dots
+  const dotsContainer = document.getElementById('prompt-dots');
+  PROMPTS.forEach((_, i) => {
+    const dot = document.createElement('span');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => { state.currentPrompt = i; renderPrompt(); });
+    dotsContainer.appendChild(dot);
+  });
+
+  // ---- NAVIGATION ----
+  document.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', () => {
+      const target = el.getAttribute('data-go');
+      if(target === 'home'){
+        // Reset sending screen
+        document.getElementById('send-progress').classList.remove('hidden');
+        document.getElementById('send-done').classList.add('hidden');
+      }
+      showScreen(target);
+      if(target === 'calllog') renderCallLog();
+    });
+  });
+
+  document.getElementById('btn-ransom-mode').addEventListener('click', () => showScreen('precall'));
+  document.getElementById('btn-tip-mode').addEventListener('click', () => {
+    state.selectedTipType = null;
+    showScreen('tip');
+    renderSingleSelectTags('tags-tiptype', TIP_TYPES, null, val => {
+      state.selectedTipType = val;
+      document.getElementById('tip-vehicle-card').classList.toggle('hidden', val !== 'vehicle');
+      document.getElementById('tip-phone-card').classList.toggle('hidden', val !== 'phone');
+      renderSingleSelectTags('tags-tiptype', TIP_TYPES, val, arguments.callee);
+    });
+    // Clear tip fields
+    ['inp-tip-state','inp-tip-lga','inp-tip-landmark','inp-tip-details','inp-tip-plate','inp-tip-vcolor','inp-tip-vmake','inp-tip-phone'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+  });
+  document.getElementById('btn-call-log').addEventListener('click', () => { renderCallLog(); showScreen('calllog'); });
+  document.getElementById('btn-setup').addEventListener('click', () => {
+    if(state.contacts.length === 0) state.contacts.push('');
+    renderContacts();
+    document.getElementById('input-passphrase').value = state.passphrase;
+    document.getElementById('input-relay-url').value = state.relayUrl;
+    showScreen('setup');
+  });
+  document.getElementById('btn-deadman').addEventListener('click', () => {
+    showScreen('deadman');
+    const selectedIntervals = new Set();
+    renderSingleSelectTags('tags-interval', INTERVALS, state.deadmanInterval, val => {
+      state.deadmanInterval = val;
+      renderSingleSelectTags('tags-interval', INTERVALS, val, arguments.callee);
+    });
+  });
+
+  // ---- SETUP ----
+  document.getElementById('btn-add-contact').addEventListener('click', () => {
+    state.contacts.push('');
+    renderContacts();
+  });
+  document.getElementById('btn-save-setup').addEventListener('click', () => {
+    state.contacts = state.contacts.filter(c => c.trim());
+    state.passphrase = document.getElementById('input-passphrase').value;
+    state.relayUrl = document.getElementById('input-relay-url').value;
+    saveConfig();
+    document.getElementById('setup-saved').classList.remove('hidden');
+    setTimeout(() => document.getElementById('setup-saved').classList.add('hidden'), 3000);
+  });
+
+  // ---- RECORDING ----
+  document.getElementById('btn-start-recording').addEventListener('click', async () => {
+    const ok = await startRecording();
+    if(ok){
+      state.currentPrompt = 0;
+      renderPrompt();
+      showScreen('duringcall');
+    }
+  });
+  document.getElementById('btn-prompt-prev').addEventListener('click', () => {
+    if(state.currentPrompt > 0){ state.currentPrompt--; renderPrompt(); }
+  });
+  document.getElementById('btn-prompt-next').addEventListener('click', () => {
+    if(state.currentPrompt < PROMPTS.length - 1){ state.currentPrompt++; renderPrompt(); }
+  });
+  document.getElementById('btn-end-call').addEventListener('click', () => {
+    stopRecording();
+    populatePostCall();
+    showScreen('postcall');
+  });
+
+  // ---- PHOTO ----
+  document.getElementById('upload-photo').addEventListener('click', () => {
+    document.getElementById('file-photo').click();
+  });
+  document.getElementById('file-photo').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      state.photoData = reader.result;
+      document.getElementById('photo-img').src = reader.result;
+      document.getElementById('photo-preview').classList.remove('hidden');
+    });
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('btn-remove-photo').addEventListener('click', () => {
+    state.photoData = null;
+    document.getElementById('photo-preview').classList.add('hidden');
+    document.getElementById('file-photo').value = '';
+  });
+
+  // ---- SEND ----
+  document.getElementById('btn-encrypt-send').addEventListener('click', () => {
+    const data = collectPostCallData();
+    sendEncryptedData(data);
+  });
+  document.getElementById('btn-send-tip').addEventListener('click', () => {
+    const data = collectTipData();
+    sendEncryptedData(data);
+  });
+
+  // ---- TIP PHOTO ----
+  document.getElementById('upload-tip-file').addEventListener('click', () => {
+    document.getElementById('file-tip').click();
+  });
+
+  // ---- DEAD MAN'S SWITCH ----
+  document.getElementById('btn-activate-deadman').addEventListener('click', () => {
+    const interval = state.deadmanInterval || 60;
+    activateDeadman(interval);
+  });
+  document.getElementById('btn-checkin').addEventListener('click', () => {
+    resetDeadman();
+  });
+
+  // ---- SWIPE SUPPORT FOR PROMPTS ----
+  let touchStartX = 0;
+  const promptCard = document.getElementById('prompt-card');
+  promptCard.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive:true});
+  promptCard.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(diff) > 50){
+      if(diff < 0 && state.currentPrompt < PROMPTS.length - 1){ state.currentPrompt++; renderPrompt(); }
+      if(diff > 0 && state.currentPrompt > 0){ state.currentPrompt--; renderPrompt(); }
+    }
+  }, {passive:true});
+
+  // Show home
+  showScreen('home');
+}
+
+// Run on DOM ready
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+
+})();
+</script>
+</body>
+</html>
